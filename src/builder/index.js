@@ -1,4 +1,5 @@
 const path = require('path');
+const logger = require('pino')();
 const fs = require('fs');
 const db = require('../../framework/database');
 
@@ -40,7 +41,7 @@ function makeMigrations(fileContent) {
       fs.appendFileSync(migrationName, ');');
     });
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   }
 }
 
@@ -49,9 +50,9 @@ async function applyMigrations() {
     const conn = await db.connect();
     makeMigrations(fs.readFileSync(path.join(BASE_DIR, '/models/index.json'), { encoding: 'utf8' }));
     conn.query(await fs.readFileSync(path.join(MIGRATIONS_DIR, '/migration1.sql'), { encoding: 'utf8' }));
-    return console.log('Directory created successfully!');
+    return logger.info('Directory created successfully!');
   } catch (err) {
-    return console.error(err);
+    return logger.error(err);
   }
 }
 

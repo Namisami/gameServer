@@ -1,4 +1,5 @@
 const http = require('http');
+const logger = require('pino')();
 // const db = require('./database');
 require('dotenv').config();
 
@@ -25,7 +26,7 @@ function App() {
 
     const server = http.createServer(requestListener);
     server.listen(port, host, () => {
-      console.log(`Server is running on http://${host}:${port}`);
+      logger.info(`Server is running on http://${host}:${port}`);
     });
   };
   return this;

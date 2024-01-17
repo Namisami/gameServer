@@ -1,4 +1,5 @@
 const { Client } = require('pg');
+const logger = require('pino')();
 require('dotenv').config();
 
 async function connect() {
@@ -12,9 +13,9 @@ async function connect() {
 
   await connection.connect()
     .then(() => {
-      console.log('Connected to PostgreSQL database!');
+      logger.info('Connected to PostgreSQL database!');
     })
-    .catch((err) => console.error('Error connecting to the database:', err));
+    .catch((err) => logger.error('Error connecting to the database:', err));
 
   return connection;
 }
