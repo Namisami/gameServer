@@ -16,7 +16,6 @@ async function connect() {
       logger.info('Connected to PostgreSQL database!');
     })
     .catch((err) => logger.error('Error connecting to the database:', err));
-
   return connection;
 }
 

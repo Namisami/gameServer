@@ -5,55 +5,58 @@ const db = require('../../framework/database');
 
 const BASE_DIR = path.join(__dirname, '../');
 const MIGRATIONS_DIR = path.join(BASE_DIR, '/migrations');
+const MODEL_DIR = path.join(BASE_DIR, '/models');
 
-function generateSqlColumn(columns, column) {
-  const isLast = Object.keys(columns).pop() === column ? '' : ',';
+function generateSqlColumn(modelFields, field) {
+  const isLast = Object.keys(modelFields).pop() === field ? '' : ',';
 
-  if (typeof columns[column] === 'object') {
-    const { type } = columns[column];
-    const len = columns[column].length;
+  if (typeof modelFields[field] === 'object') {
+    const { type } = modelFields[field];
+    const len = modelFields[field].length;
 
-    const isPrimary = columns[column].primary ? 'PRIMARY KEY' : '';
-    const isNull = columns[column].null ? '' : 'NOT NULL';
-    const isUnique = columns[column].unique ? 'UNIQUE' : '';
+    const isPrimary = modelFields[field].primary ? 'PRIMARY KEY' : '';
+    const isNull = modelFields[field].null ? '' : 'NOT NULL';
+    const isUnique = modelFields[field].unique ? 'UNIQUE' : '';
     const CONSTRAINTS = [isPrimary, isNull, isUnique].filter((constraint) => constraint !== '').join(' ');
 
-    return `\t${column} ${type}${len ? `(${len})` : ''} ${CONSTRAINTS}${isLast}\n`;
+    return `\t${field} ${type}${len ? `(${len})` : ''} ${CONSTRAINTS}${isLast}\n`;
   }
-  return `\t${column} ${columns[column]}${isLast}\n`;
+  return `\t${field} ${modelFields[field]}${isLast}\n`;
 }
 
-function makeMigrations(fileContent) {
-  const migrationName = path.join(MIGRATIONS_DIR, '/migration1.sql');
-  const parsedFile = JSON.parse(fileContent);
-  const modelNames = Object.keys(parsedFile);
-  try {
-    fs.mkdirSync(MIGRATIONS_DIR, { recursive: true });
-    modelNames.forEach((model) => {
-      const columns = parsedFile[model];
-      fs.writeFileSync(migrationName, `CREATE TABLE IF NOT EXISTS ${model} (\n`);
-      // eslint-disable-next-line no-restricted-syntax
-      for (const column in columns) {
-        if (column in columns) {
-          fs.appendFileSync(migrationName, generateSqlColumn(columns, column));
-        }
-      }
-      fs.appendFileSync(migrationName, ');');
-    });
-  } catch (err) {
-    logger.error(err);
-  }
+async function makeMigration(fileName, conn) {
+  const migrationName = path.join(MIGRATIONS_DIR, fileName.replace('.json', '.sql'));
+  const fileContent = fs.readFileSync(path.join(MODEL_DIR, fileName), { encoding: 'utf8' });
+  const modelFields = JSON.parse(fileContent);
+  const modelFieldNames = Object.keys(modelFields);
+
+  fs.writeFileSync(migrationName, `CREATE TABLE IF NOT EXISTS ${fileName.replace('.json', '')} (\n`);
+  modelFieldNames.forEach((field) => {
+    fs.appendFileSync(migrationName, generateSqlColumn(modelFields, field));
+  });
+  fs.appendFileSync(migrationName, ');');
+
+  await conn.query(fs.readFileSync(path.join(MIGRATIONS_DIR, '/migration1.sql'), { encoding: 'utf8' }));
+}
+
+async function makeMigrations(conn) {
+  fs.mkdirSync(MIGRATIONS_DIR, { recursive: true });
+  const modelFileNames = fs.readdirSync(MODEL_DIR);
+
+  return modelFileNames.forEach(async (fileName) => {
+    await makeMigration(fileName, conn);
+  });
 }
 
 async function applyMigrations() {
   try {
     const conn = await db.connect();
-    makeMigrations(fs.readFileSync(path.join(BASE_DIR, '/models/index.json'), { encoding: 'utf8' }));
-    conn.query(await fs.readFileSync(path.join(MIGRATIONS_DIR, '/migration1.sql'), { encoding: 'utf8' }));
-    return logger.info('Directory created successfully!');
+    await makeMigrations(conn);
+    return logger.info('Migrated successfully!');
   } catch (err) {
-    return logger.error(err);
+    return logger.error(`Migrated with error: ${err}`);
   }
 }
 
-applyMigrations();
+applyMigrations()
+  .then(() => process.exit());
