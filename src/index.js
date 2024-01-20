@@ -1,5 +1,5 @@
 const createApp = require('../framework');
-require('./models');
+// require('./models');
 
 const app = createApp();
 app.createRoute('/books', 'GET', JSON.stringify({ message: 'books' }, null, 4));

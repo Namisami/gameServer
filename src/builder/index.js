@@ -54,7 +54,7 @@ async function applyMigrations() {
     await makeMigrations(conn);
     return logger.info('Migrated successfully!');
   } catch (err) {
-    return logger.error(`Migrated with error: ${err}`);
+    return logger.error(`Migration error: ${err}`);
   }
 }
 
