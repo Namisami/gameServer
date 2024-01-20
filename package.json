@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index | npx pino-pretty",
-    "migrate": "node src/builder | npx pino-pretty",
+    "dev": "nodemon src/index.ts | npx pino-pretty",
+    "migrate": "ts-node src/builder | npx pino-pretty",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -21,7 +21,8 @@
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.29.1",
-    "pino-pretty": "^10.3.1"
+    "pino-pretty": "^10.3.1",
+    "typescript": "^5.3.3"
   },
   "bin": {
     "builder": "./framework/builder/index.js"

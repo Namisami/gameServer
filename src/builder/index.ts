@@ -1,13 +1,26 @@
 const path = require('path');
 const logger = require('pino')();
 const fs = require('fs');
+const { Client } = require('pg');
 const db = require('../../framework/database');
 
 const BASE_DIR = path.join(__dirname, '../');
 const MIGRATIONS_DIR = path.join(BASE_DIR, '/migrations');
 const MODEL_DIR = path.join(BASE_DIR, '/models');
 
-function generateSqlColumn(modelFields, field) {
+interface Constraints {
+  readonly type?: string
+  readonly length?: number
+  readonly primary?: boolean
+  readonly unique?: boolean
+  readonly null?: boolean
+}
+
+interface Model {
+  [key: string]: Constraints
+}
+
+function generateSqlColumn(modelFields: Model, field: string): string {
   const isLast = Object.keys(modelFields).pop() === field ? '' : ',';
 
   if (typeof modelFields[field] === 'object') {
@@ -24,7 +37,7 @@ function generateSqlColumn(modelFields, field) {
   return `\t${field} ${modelFields[field]}${isLast}\n`;
 }
 
-async function makeMigration(fileName, conn) {
+async function makeMigration(fileName: string, conn: typeof Client): Promise<void> {
   const migrationName = path.join(MIGRATIONS_DIR, fileName.replace('.json', '.sql'));
   const fileContent = fs.readFileSync(path.join(MODEL_DIR, fileName), { encoding: 'utf8' });
   const modelFields = JSON.parse(fileContent);
@@ -39,11 +52,10 @@ async function makeMigration(fileName, conn) {
   await conn.query(fs.readFileSync(path.join(MIGRATIONS_DIR, '/migration1.sql'), { encoding: 'utf8' }));
 }
 
-async function makeMigrations(conn) {
+async function makeMigrations(conn: typeof Client): Promise<void> {
   fs.mkdirSync(MIGRATIONS_DIR, { recursive: true });
   const modelFileNames = fs.readdirSync(MODEL_DIR);
-
-  return modelFileNames.forEach(async (fileName) => {
+  modelFileNames.forEach(async (fileName: string) => {
     await makeMigration(fileName, conn);
   });
 }
