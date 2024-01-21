@@ -11,13 +11,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^20.10.6",
     "dotenv": "^16.3.1",
     "node": "^21.2.0",
     "pg": "^8.11.3",
     "pino": "^8.17.2"
   },
   "devDependencies": {
+    "@types/node": "^20.11.5",
     "eslint": "^8.56.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.29.1",

@@ -1,7 +1,6 @@
 const path = require('path');
-const logger = require('pino')();
+// const logger = require('pino')();
 const fs = require('fs');
-const { Client } = require('pg');
 const db = require('../../framework/database');
 
 const BASE_DIR = path.join(__dirname, '../');
