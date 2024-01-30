@@ -1,5 +1,6 @@
+import { Client } from "pg";
 const path = require('path');
-// const logger = require('pino')();
+const logger = require('pino')();
 const fs = require('fs');
 const db = require('../../framework/database');
 
